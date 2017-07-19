@@ -14,25 +14,28 @@ public class Client {
         this.messageListener=messageListener1;
     }
     public class ListenerThread extends Thread{
-        BufferedReader inner;
+        ObjectInputStream inner;
         MessageListener messageListener;
-        public ListenerThread(BufferedReader in,MessageListener messageListener1){
+        public ListenerThread(ObjectInputStream in,MessageListener messageListener1){
             this.inner=in;
             this.messageListener=messageListener1;
         }
         public void run() {
-            String input;
+            REQUESTS.BasicRequest input;
             while (true){
                 try {
-                    input = inner.readLine();
-                    if(input!=null)
+                    input = (REQUESTS.BasicRequest) inner.readObject();
+                    Object cd = input.type.cast(input);
+                    if(cd instanceof REQUESTS.Message)
                     {
                         if(messageListener!=null)
                         {
-                            messageListener.OnMessageRecived(input);
+                            messageListener.OnMessageRecived(((REQUESTS.Message) cd).Author+" say: "+((REQUESTS.Message) cd).Text);
                         }
                     }
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }
@@ -42,16 +45,20 @@ public class Client {
         Socket fromserver = null;
         try {
             fromserver = new Socket();
-            fromserver.connect(new InetSocketAddress("https://obscure-river-98199.herokuapp.com/localhost",4040));
-            in  = new BufferedReader(new InputStreamReader(fromserver.getInputStream()));
-            out = new PrintWriter(fromserver.getOutputStream(),true);
+            fromserver.connect(new InetSocketAddress("localhost",4040));
+            out = new ObjectOutputStream(fromserver.getOutputStream());
+            in  = new ObjectInputStream(fromserver.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     public void send(String message)
     {
-        out.println(message);
+        try {
+            out.writeObject(new REQUESTS.Message(message,"UNKNOWN"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public void start()
     {
@@ -59,9 +66,9 @@ public class Client {
         new ListenerThread(in,messageListener).start();
         started=true;
     }
-    PrintWriter out = null;
+    ObjectOutputStream out = null;
     public boolean started=false;
-    BufferedReader in = null;
+    ObjectInputStream in = null;
 }
 interface MessageListener{
     void OnMessageRecived(String message);

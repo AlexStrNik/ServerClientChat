@@ -59,46 +59,49 @@ public class Server {
 class ConnectionThread extends Thread{
     private Socket socket;
     private Server server;
-    private PrintWriter out;
+    private ObjectOutputStream out;
     ConnectionThread(Socket sock, Server serv)
     {
         this.server=serv;
         this.socket=sock;
     }
-    public void send(String message)
-    {
+    public void send(REQUESTS.BasicRequest message) {
         if(out!=null)
         {
-            out.println(message);
+            try {
+                out.writeObject(message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
     public void run() {
-        InputStream inp = null;
-        BufferedReader brinp = null;
+        ObjectInputStream inp = null;
         out = null;
         try {
-            inp = socket.getInputStream();
-            brinp = new BufferedReader(new InputStreamReader(inp));
-            out = new PrintWriter(socket.getOutputStream(),true);
+            out = new ObjectOutputStream(socket.getOutputStream());
+            inp = new ObjectInputStream(socket.getInputStream());
+
         } catch (IOException e) {
             return;
         }
-        String line;
+        REQUESTS.BasicRequest line;
         while (true) {
             try {
-                line = brinp.readLine();
-                if ((line == null) || line.equalsIgnoreCase("FINISH")) {
-                    socket.close();
-                    return;
-                } else {
-                    for(ConnectionThread e : server.conns)
+                line = (REQUESTS.BasicRequest) inp.readObject();
+                Object cnv = (line.type.cast(line));
+                if(cnv instanceof REQUESTS.Message)
+                {
+                    for(ConnectionThread conn : server.conns)
                     {
-                        e.send(line);
+                        conn.send((REQUESTS.BasicRequest) cnv);
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
         }
     }

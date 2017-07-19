@@ -41,7 +41,8 @@ public class ChatApp {
             }
         });
         client.start();
-        guiFrame.add(list,BorderLayout.WEST);
+        //guiFrame.add(list,BorderLayout.WEST);
+        guiFrame.add(listScroller,BorderLayout.CENTER);
         guiFrame.add(textField,BorderLayout.SOUTH);
         guiFrame.setVisible(true);
     }
