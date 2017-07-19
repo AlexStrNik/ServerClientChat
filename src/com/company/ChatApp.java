@@ -2,9 +2,13 @@ package com.company;
 
 
 import javax.swing.*;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class ChatApp {
 
@@ -28,8 +32,14 @@ public class ChatApp {
         JScrollPane listScroller = new JScrollPane(list);
         client.setMessageListener(new MessageListener() {
             @Override
-            public void OnMessageRecived(String message) {
-                listModel.addElement(message);
+            public void OnMessageRecived(Items.Message message) {
+                listModel.addElement(message.user.nickname+" say: "+message.text);
+                list.addNotify();
+            }
+
+            @Override
+            public void OnMessageReplied(Items.Message message) {
+                listModel.addElement(message.user.nickname+" reply: "+message.replied.text+"     \t\n"+message.text);
                 list.addNotify();
             }
         });
@@ -37,7 +47,20 @@ public class ChatApp {
         textField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                client.send(textField.getText());
+                client.send_message(textField.getText(),new Items.Chat("l"));
+                textField.setText("");
+            }
+        });
+        list.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                super.mouseClicked(evt);
+                JList list = (JList)evt.getSource();
+                if (evt.getClickCount() == 2) {
+                    int index = list.locationToIndex(evt.getPoint());
+                    client.reply_message(new Items.Message(listModel.get(index).split(" say: ")[1],new Items.User(listModel.get(index).split(" say: ")[0]),new Items.Chat("k")),textField.getText());
+                    textField.setText("");
+                }
             }
         });
         client.start();

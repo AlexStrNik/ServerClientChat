@@ -90,7 +90,7 @@ class ConnectionThread extends Thread{
             try {
                 line = (REQUESTS.BasicRequest) inp.readObject();
                 Object cnv = (line.type.cast(line));
-                if(cnv instanceof REQUESTS.Message)
+                if(cnv instanceof REQUESTS.SendMessage | cnv instanceof REQUESTS.ReplyMessage)
                 {
                     for(ConnectionThread conn : server.conns)
                     {

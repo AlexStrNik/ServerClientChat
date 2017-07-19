@@ -26,11 +26,18 @@ public class Client {
                 try {
                     input = (REQUESTS.BasicRequest) inner.readObject();
                     Object cd = input.type.cast(input);
-                    if(cd instanceof REQUESTS.Message)
+                    if(cd instanceof REQUESTS.SendMessage)
                     {
                         if(messageListener!=null)
                         {
-                            messageListener.OnMessageRecived(((REQUESTS.Message) cd).Author+" say: "+((REQUESTS.Message) cd).Text);
+                            messageListener.OnMessageRecived(((REQUESTS.SendMessage) cd).message);
+                        }
+                    }
+                    if (cd instanceof REQUESTS.ReplyMessage)
+                    {
+                        if(messageListener!=null)
+                        {
+                            messageListener.OnMessageReplied(((REQUESTS.ReplyMessage) cd).message);
                         }
                     }
                 } catch (IOException e) {
@@ -52,10 +59,20 @@ public class Client {
             e.printStackTrace();
         }
     }
-    public void send(String message)
+    public void send_message(String message, Items.Chat chat)
     {
         try {
-            out.writeObject(new REQUESTS.Message(message,"UNKNOWN"));
+            REQUESTS.SendMessage nw = new REQUESTS.SendMessage(new Items.Message(message,new Items.User("Unknown"),chat),chat);
+            out.writeObject(nw);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void reply_message(Items.Message message, String text)
+    {
+        REQUESTS.ReplyMessage nw = new REQUESTS.ReplyMessage(message.Reply(new Items.Message(text,new Items.User("Unknown"),message.chat)),message.chat);
+        try {
+            out.writeObject(nw);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -71,5 +88,6 @@ public class Client {
     ObjectInputStream in = null;
 }
 interface MessageListener{
-    void OnMessageRecived(String message);
+    void OnMessageRecived(Items.Message message);
+    void OnMessageReplied(Items.Message message);
 }

@@ -11,18 +11,27 @@ public class REQUESTS {
     {
      Class type;
     }
-
-    public static class Message extends BasicRequest
-    {
-        String Text;
-        String Author;
-        public Message(String cText ,String cAuthor)
+    public static class ReplyMessage extends BasicRequest{
+        public Items.Message message;
+        public Items.Chat dst;
+        public ReplyMessage(Items.Message msg, Items.Chat chat)
         {
-            Text=cText;
-            Author=cAuthor;
-            type=Message.class;
+            message=msg;
+            dst=chat;
+            type=ReplyMessage.class;
         }
-        public Message(){type= Message.class;}
+        public ReplyMessage(){type=ReplyMessage.class;}
+    }
+    public static class SendMessage extends BasicRequest{
+        public Items.Message message;
+        public Items.Chat dst;
+        public SendMessage(Items.Message msg, Items.Chat chat)
+        {
+            message=msg;
+            dst=chat;
+            type=SendMessage.class;
+        }
+        public SendMessage(){type=SendMessage.class;}
     }
 
 }
