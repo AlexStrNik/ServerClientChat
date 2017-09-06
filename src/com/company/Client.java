@@ -8,6 +8,7 @@ import java.net.Socket;
  * Created by Никита on 17.07.2017.
  */
 public class Client {
+    Items.User user;
     private MessageListener messageListener;
     public void setMessageListener(MessageListener messageListener1)
     {
@@ -62,7 +63,7 @@ public class Client {
     public void send_message(String message, Items.Chat chat)
     {
         try {
-            REQUESTS.SendMessage nw = new REQUESTS.SendMessage(new Items.Message(message,new Items.User("Unknown"),chat),chat);
+            REQUESTS.SendMessage nw = new REQUESTS.SendMessage(new Items.Message(message, user,chat),chat);
             out.writeObject(nw);
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,7 +71,7 @@ public class Client {
     }
     public void reply_message(Items.Message message, String text)
     {
-        REQUESTS.ReplyMessage nw = new REQUESTS.ReplyMessage(message.Reply(new Items.Message(text,new Items.User("Unknown"),message.chat)),message.chat);
+        REQUESTS.ReplyMessage nw = new REQUESTS.ReplyMessage(message.Reply(new Items.Message(text, user,message.chat)),message.chat);
         try {
             out.writeObject(nw);
         } catch (IOException e) {
